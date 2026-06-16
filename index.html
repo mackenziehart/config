@@ -344,16 +344,18 @@ function render(){
 
   if(tab==="all"){
     // Search on its own line, then tag chips
-    html+=`<div class="filter-search"><input type="text" placeholder="Search sessions or speakers…" value="${search.replace(/"/g,'&quot;')}" oninput="doSearch(this.value)" /></div>
+    html+=`<div class="filter-search"><input type="text" id="search-input" placeholder="Search sessions or speakers…" value="${search.replace(/"/g,'&quot;')}" /></div>
     <div class="filter-tags">
       ${ALL_TAGS.map(t=>`<button class="fchip ${filterTags.has(t)?"on":""}" onclick="toggleTag('${t}')">${t}</button>`).join("")}
       ${filterTags.size?`<button class="fchip-clear" onclick="clearTags()">✕ clear filters</button>`:""}
     </div>`;
+    html+=`<div id="cards-area">`;
     for(const day of DAYS){
       const ds=filtered.filter(s=>s.day===day); if(!ds.length) continue;
       html+=`<div class="day-label">${day}</div>`; ds.forEach(s=>html+=renderCard(s,cx));
     }
     if(!filtered.length) html+=`<div class="empty" style="padding:2rem 0"><i class="ti ti-mood-empty"></i>No sessions match your filters.</div>`;
+    html+=`</div>`;
 
   } else if(tab==="mine"){
     if(!saved.size){
@@ -421,12 +423,35 @@ function render(){
   }
 
   app.innerHTML=html;
+
+  // Reattach search listener and restore focus without losing cursor position
+  const si=document.getElementById("search-input");
+  if(si){
+    si.addEventListener("input",e=>{ search=e.target.value; renderCards(); });
+    if(document.activeElement!==si && search) { si.focus(); si.setSelectionRange(si.value.length,si.value.length); }
+  }
+}
+
+function renderCards(){
+  // Re-render only the cards area, not the whole page
+  let filtered=S;
+  if(search) filtered=filtered.filter(s=>s.title.toLowerCase().includes(search.toLowerCase())||s.speaker.toLowerCase().includes(search.toLowerCase()));
+  if(filterTags.size) filtered=filtered.filter(s=>s.tags.some(t=>filterTags.has(t)));
+  const saved=mySet(); const cx=getConflicts(saved);
+  let html="";
+  for(const day of DAYS){
+    const ds=filtered.filter(s=>s.day===day); if(!ds.length) continue;
+    html+=`<div class="day-label">${day}</div>`; ds.forEach(s=>html+=renderCard(s,cx));
+  }
+  if(!filtered.length) html=`<div class="empty" style="padding:2rem 0"><i class="ti ti-mood-empty"></i>No sessions match your filters.</div>`;
+  const cardsEl=document.getElementById("cards-area");
+  if(cardsEl) cardsEl.innerHTML=html;
 }
 
 window.toggleSave=toggleSave; window.register=register;
 window.setTab=t=>{tab=t;render();};
 window.copyLink=copyLink; window.logout=logout;
-window.doSearch=v=>{search=v;render();};
+window.doSearch=v=>{search=v;renderCards();};
 window.toggleTag=toggleTag; window.clearTags=clearTags;
 window.toggleUser=toggleUser;
 
