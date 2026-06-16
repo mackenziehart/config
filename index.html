@@ -328,7 +328,7 @@ function render(){
   if(filterTags.size) filtered=filtered.filter(s=>s.tags.some(t=>filterTags.has(t)));
 
   let html=`<div class="hrow">
-    <div><h1>Config 2026 — agenda planner</h1><p class="sub">June 23–25 · Moscone Center, San Francisco</p></div>
+    <div><h1>Config 2026 — shared agenda planner</h1><p class="sub">June 23–25 · Moscone Center, San Francisco</p></div>
     <button class="upill" onclick="logout()" title="Switch name">
       <div style="width:20px;height:20px;border-radius:50%;background:${uc(me.id)};color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">${gi(me.name)}</div>
       ${me.name}<i class="ti ti-logout" style="font-size:12px"></i>
