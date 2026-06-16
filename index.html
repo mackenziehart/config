@@ -250,10 +250,33 @@ async function toggleSave(sid){
 
 const mySet=()=>me?new Set(bookmarks.filter(b=>b.user_id===me.id).map(b=>b.session_id)):new Set();
 
+function parseMinutes(t){
+  // e.g. "9:00 AM", "12:10 PM", "1:30"
+  t=t.trim();
+  const pm=t.match(/pm/i)!==null; const am=t.match(/am/i)!==null;
+  const [h,m]=(t.replace(/[apm\s]/gi,"")).split(":").map(Number);
+  let hours=h; if(pm&&h!==12) hours+=12; if(am&&h===12) hours=0;
+  return hours*60+(m||0);
+}
+function parseRange(timeStr){
+  // e.g. "11:10 – 11:30 AM" or "11:50 AM – 12:10 PM" or "9:00 – 10:20 AM"
+  const parts=timeStr.split(/\s*[–-]\s*/);
+  if(parts.length<2) return null;
+  let [a,b]=parts;
+  // if first part has no AM/PM, inherit from second
+  if(!/[apm]/i.test(a)&&/[apm]/i.test(b)){
+    const suffix=b.match(/[apm]+/i)[0]; a=a.trim()+" "+suffix;
+  }
+  return [parseMinutes(a),parseMinutes(b)];
+}
+function overlaps(r1,r2){
+  if(!r1||!r2) return false;
+  return r1[0]<r2[1]&&r2[0]<r1[1];
+}
 function getConflicts(ids){
   const ss=S.filter(s=>ids.has(s.id)); const cx=new Set();
   for(let i=0;i<ss.length;i++) for(let j=i+1;j<ss.length;j++)
-    if(ss[i].day===ss[j].day&&ss[i].time===ss[j].time){cx.add(ss[i].id);cx.add(ss[j].id);}
+    if(ss[i].day===ss[j].day&&overlaps(parseRange(ss[i].time),parseRange(ss[j].time))){cx.add(ss[i].id);cx.add(ss[j].id);}
   return cx;
 }
 
