@@ -23,8 +23,8 @@
       }
     }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    .wrap { max-width: 900px; margin: 0 auto; padding: 3rem 4rem; }
-    @media (max-width: 700px) { .wrap { padding: 1.5rem 1.25rem; } }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 3rem 5rem; }
+    @media (max-width: 800px) { .wrap { padding: 1.5rem 1.25rem; } }
     h1 { font-size: 26px; font-weight: 500; margin-bottom: 6px; }
     .sub { font-size: 15px; color: var(--text2); margin-bottom: 2rem; }
     .hrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
@@ -274,8 +274,9 @@ function overlaps(r1,r2){
   if(!r1||!r2) return false;
   return r1[0]<r2[1]&&r2[0]<r1[1];
 }
+const SKIP_CONFLICT_TAGS=new Set(["logistics","social","community"]);
 function getConflicts(ids){
-  const ss=S.filter(s=>ids.has(s.id)); const cx=new Set();
+  const ss=S.filter(s=>ids.has(s.id)&&!s.tags.some(t=>SKIP_CONFLICT_TAGS.has(t))); const cx=new Set();
   for(let i=0;i<ss.length;i++) for(let j=i+1;j<ss.length;j++)
     if(ss[i].day===ss[j].day&&overlaps(parseRange(ss[i].time),parseRange(ss[j].time))){cx.add(ss[i].id);cx.add(ss[j].id);}
   return cx;
