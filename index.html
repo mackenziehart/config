@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config 2026 — Agenda Planner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --bg2: #f5f5f3; --text: #1a1a1a; --text2: #6b6b6b;
+      --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.25);
+      --r-md: 8px; --r-lg: 12px;
+      --purple-bg: #EEEDFE; --purple-b: #7F77DD; --purple-t: #3C3489; --purple-s: #534AB7;
+      --amber-bg: #FAEEDA; --amber-b: #EF9F27; --amber-t: #854F0B;
+      --teal-t: #0F6E56; --teal-b: #1D9E75;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a; --bg2: #242424; --text: #f0f0f0; --text2: #999;
+        --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.25);
+        --purple-bg: #26215C; --purple-b: #7F77DD; --purple-t: #CECBF6; --purple-s: #AFA9EC;
+      }
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .wrap { max-width: 740px; margin: 0 auto; padding: 2rem 1.25rem; }
+    h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: var(--text2); margin-bottom: 1.5rem; }
+    .hrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+    .upill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); padding: 5px 12px; border: 0.5px solid var(--border); border-radius: 99px; cursor: pointer; background: none; white-space: nowrap; }
+    .upill:hover { background: var(--bg2); }
+
+    /* Tabs — no outline/shadow on click */
+    .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
+    .tab { padding: 8px 16px; font-size: 14px; background: none; border: none; outline: none; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+    .tab:focus { outline: none; }
+    .tab:focus-visible { outline: 2px solid var(--purple-b); outline-offset: 2px; }
+    .tab.active { color: var(--text); font-weight: 500; border-bottom-color: var(--text); }
+
+    .day-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 0.75rem; }
+
+    /* Session cards */
+    .card { display: flex; align-items: flex-start; gap: 12px; padding: 11px 13px; border: 0.5px solid var(--border); border-radius: var(--r-lg); margin-bottom: 7px; background: var(--bg); transition: border-color 0.12s; }
+    .card:hover { border-color: var(--border2); }
+    .card.saved { border-color: var(--purple-b); background: var(--purple-bg); }
+    .card.saved .ct a { color: var(--purple-t); }
+    .card.saved .cm { color: var(--purple-s); }
+    .ctime { font-size: 11px; color: var(--text2); min-width: 90px; padding-top: 3px; flex-shrink: 0; line-height: 1.4; }
+    .cbody { flex: 1; min-width: 0; }
+    .ct { font-size: 14px; font-weight: 500; margin-bottom: 2px; line-height: 1.4; }
+    .ct a { color: inherit; text-decoration: none; }
+    .ct a:hover { text-decoration: underline; color: var(--purple-s); }
+    .card.saved .ct a:hover { color: var(--purple-t); }
+    .cm { font-size: 12px; color: var(--text2); }
+    .tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+    .tag { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
+    .conflict { font-size: 11px; padding: 2px 7px; background: var(--amber-bg); color: var(--amber-t); border-radius: 99px; border: 0.5px solid var(--amber-b); }
+    .att { display: flex; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+    .avlist { display: flex; margin-right: 10px; }
+    .av { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 9px; font-weight: 600; border: 1.5px solid var(--bg); margin-right: -5px; color: #fff; flex-shrink: 0; }
+    .anames { font-size: 12px; color: var(--text2); }
+    .anames.me { color: var(--purple-s); }
+    .sbtn { background: none; border: 0.5px solid var(--border2); border-radius: var(--r-md); width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; flex-shrink: 0; transition: all 0.12s; outline: none; }
+    .sbtn:focus { outline: none; }
+    .sbtn:hover { background: var(--bg2); }
+    .sbtn.saved { color: var(--purple-s); border-color: var(--purple-b); }
+
+    /* Stats / share */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .stat { background: var(--bg2); border-radius: var(--r-md); padding: 12px; text-align: center; }
+    .stat-n { font-size: 22px; font-weight: 500; }
+    .stat-l { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .sbar { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 0.5px solid var(--border); border-radius: var(--r-lg); background: var(--bg2); margin-bottom: 1.5rem; }
+    .sbar input { flex: 1; background: none; border: none; font-size: 12px; color: var(--text2); outline: none; font-family: monospace; min-width: 0; }
+
+    /* Buttons / inputs */
+    button { font-family: inherit; font-size: 14px; padding: 8px 14px; border-radius: var(--r-md); border: 0.5px solid var(--border2); background: none; color: var(--text); cursor: pointer; transition: background 0.12s; outline: none; }
+    button:focus { outline: none; }
+    button:focus-visible { outline: 2px solid var(--purple-b); outline-offset: 2px; }
+    button:hover { background: var(--bg2); }
+    input[type="text"] { font-family: inherit; font-size: 14px; padding: 8px 12px; border-radius: var(--r-md); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); outline: none; width: 100%; }
+    input[type="text"]:focus { border-color: var(--purple-b); }
+
+    /* Onboard */
+    .onboard { max-width: 340px; margin: 3rem auto; padding: 2rem; border: 0.5px solid var(--border); border-radius: var(--r-lg); }
+    .onboard h2 { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+    .onboard p { font-size: 14px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.6; }
+    .onboard input { margin-bottom: 10px; }
+    .onboard button { width: 100%; margin-top: 4px; }
+    .err { font-size: 13px; color: #c0392b; margin-top: 4px; }
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
+    .empty i { font-size: 32px; display: block; margin-bottom: 12px; opacity: 0.3; }
+
+    /* Filter area */
+    .filter-search { margin-bottom: 0.75rem; }
+    .filter-search input { font-size: 13px; padding: 7px 11px; }
+    .filter-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+    .fchip { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--border); background: none; color: var(--text2); cursor: pointer; transition: all 0.12s; }
+    .fchip:hover { border-color: var(--border2); color: var(--text); }
+    .fchip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .fchip-clear { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--border); background: none; color: var(--text2); cursor: pointer; margin-left: 4px; }
+    .fchip-clear:hover { background: var(--bg2); }
+
+    /* Team tab */
+    .trow { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+    .trow:hover .tname { color: var(--purple-s); }
+    .tav { width: 36px; height: 36px; border-radius: 50%; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+    .tname { font-size: 14px; font-weight: 500; transition: color 0.12s; }
+    .tsub { font-size: 12px; color: var(--text2); }
+    .tchevron { margin-left: auto; font-size: 14px; color: var(--text2); transition: transform 0.2s; }
+    .tchevron.open { transform: rotate(180deg); }
+    .texpand { padding: 8px 0 4px 48px; }
+    .texpand-card { font-size: 13px; padding: 7px 0; border-bottom: 0.5px solid var(--border); color: var(--text); display: flex; gap: 10px; align-items: flex-start; }
+    .texpand-card:last-child { border-bottom: none; }
+    .texpand-time { font-size: 11px; color: var(--text2); min-width: 80px; flex-shrink: 0; padding-top: 1px; }
+    .texpand-title a { color: inherit; text-decoration: none; font-weight: 500; }
+    .texpand-title a:hover { text-decoration: underline; color: var(--purple-s); }
+    .texpand-room { font-size: 11px; color: var(--text2); }
+    .texpand-empty { font-size: 13px; color: var(--text2); padding: 8px 0; font-style: italic; }
+  </style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="empty"><i class="ti ti-loader"></i>Loading…</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = "https://xuyvsqhotkmlqcnyvgom.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1eXZzcWhvdGttbHFjbnl2Z29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjA1OTcsImV4cCI6MjA5NzEzNjU5N30.sMPnVPRpeDhiJQbGATiHuOezgqwzscqer6FBbx_OSvg";
+
+const S = [
+  {id:100,day:"June 23",time:"9:00 AM – 7:00 PM",title:"Badge pickup",speaker:"",room:"Moscone North",tags:["logistics"],href:"https://config.figma.com/san-francisco/event/ccc9794a-d870-47e7-a370-8d855270012b/"},
+  {id:101,day:"June 23",time:"12:00 – 7:00 PM",title:"Config Commons — community hangout & swag",speaker:"",room:"Config Commons",tags:["social","community"],href:"https://config.figma.com/san-francisco/event/f0a6d1fb-cb12-4d50-8ac9-daa8c5417654/"},
+  {id:1, day:"June 24",time:"9:00 – 10:20 AM",title:"Figma product launch (Opening keynote)",speaker:"Dylan Field",room:"Main Stage",tags:["keynote","product"],href:"https://config.figma.com/san-francisco/session/829e6ced-3257-4f5c-b675-aa72f4d1f98f/"},
+  {id:7, day:"June 24",time:"10:35 – 10:55 AM",title:"The rules are the art: creating with AI",speaker:"Holly Herndon",room:"Main Stage",tags:["keynote","ai","workflows"],href:"https://config.figma.com/san-francisco/session/94c665ce-4b37-4127-b49a-425ac25319a2/"},
+  {id:8, day:"June 24",time:"11:00 – 11:45 AM",title:"Figma learning lab: design to development workflows",speaker:"Amy Lima, Riccardo Erra",room:"Learning Labs",tags:["dev & code","workflows"],href:"https://config.figma.com/san-francisco/session/caaf2c7f-ce7c-42f5-963f-93e20bcccbf4/"},
+  {id:9, day:"June 24",time:"11:10 – 11:30 AM",title:"Scooter, screen and duct-tape: from hack to habit",speaker:"Unni Krishnan Manikoth, Harish Kumar",room:"Level 2 Stage",tags:["prototyping","hardware"],href:"https://config.figma.com/san-francisco/session/923b7644-6bbb-4260-97a1-446cb2f05daf/"},
+  {id:10,day:"June 24",time:"11:10 AM – 12:10 PM",title:"Figma deep dive",speaker:"Daniela Muntyan, Luca Damasco, Dave Hornsby",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/dfa297f9-6486-4a4f-b272-97fe3572349c/"},
+  {id:11,day:"June 24",time:"11:10 – 11:30 AM",title:"Ready for the world",speaker:"Vicki Tan",room:"Mezzanine Stage",tags:["illustration","storytelling"],href:"https://config.figma.com/san-francisco/session/e220cef8-e2a0-4384-b9a7-bf6a0b23274a/"},
+  {id:12,day:"June 24",time:"11:10 – 11:30 AM",title:"From kickoff to canvas: connecting Google Workspace and Figma",speaker:"Addison Rodomista, Chloe Fagan-Tucker",room:"Maker Stage",tags:["workflows","ai","product"],href:"https://config.figma.com/san-francisco/session/ee548465-66ff-48ed-a86b-ee55e0be22f2/"},
+  {id:13,day:"June 24",time:"11:30 – 11:50 AM",title:"Dimensional shift: sculpting in Figma Draw",speaker:"Josh McKenna",room:"Mezzanine Stage",tags:["illustration","visual design"],href:"https://config.figma.com/san-francisco/session/274b9aeb-8c3a-49b2-b241-325ec5b50487/"},
+  {id:14,day:"June 24",time:"11:30 – 11:50 AM",title:"Beyond design systems: designing for robots and seniors",speaker:"Anna Oh",room:"Level 2 Stage",tags:["ai","prototyping","research","accessibility"],href:"https://config.figma.com/san-francisco/session/979a7614-45e1-43a4-82d6-a0e2ef8cbed8/"},
+  {id:15,day:"June 24",time:"11:50 AM – 12:10 PM",title:"How to build content systems for AI product workflows",speaker:"Jessica Ouyang, Jolena Ma",room:"Maker Stage",tags:["ai","content design","ux"],href:"https://config.figma.com/san-francisco/session/520fcaa6-76e0-4703-89b0-9f4dfb9a91de/"},
+  {id:16,day:"June 24",time:"11:50 AM – 12:10 PM",title:"Figma meets hardware: prototyping for the physical world",speaker:"Frederik Ueberschär, Sam Thorne",room:"Level 2 Stage",tags:["prototyping","hardware"],href:"https://config.figma.com/san-francisco/session/93485c8d-f1b1-45b3-bdca-a24e0c0bd94c/"},
+  {id:17,day:"June 24",time:"11:50 AM – 12:10 PM",title:"Out of sync, on purpose: desktop design after mobile won",speaker:"Giulio Fagiolini",room:"Mezzanine Stage",tags:["ux","workflows"],href:"https://config.figma.com/san-francisco/session/eb8fbae1-7cdf-420c-bfbe-cd676fccd1d0/"},
+  {id:18,day:"June 24",time:"12:00 – 12:45 PM",title:"Figma learning lab: the many ways to make with Figma Make",speaker:"Alexia Danton, Brett McMillin",room:"Learning Labs",tags:["ai","workflows"],href:"https://config.figma.com/san-francisco/session/ec2fc49f-9d34-46c8-9086-8887cab3bef2/"},
+  {id:19,day:"June 24",time:"12:10 – 12:30 PM",title:"Writing for humans in an AI world",speaker:"Chelsea Larsson",room:"Mezzanine Stage",tags:["ai","content design"],href:"https://config.figma.com/san-francisco/session/47d280de-e85a-4e10-b6e6-b97734490e9f/"},
+  {id:20,day:"June 24",time:"12:30 – 12:50 PM",title:"Be the director: how stage craft informs product craft",speaker:"Kim Beverett",room:"Level 2 Stage",tags:["storytelling","product"],href:"https://config.figma.com/san-francisco/session/8f2835f5-9701-4834-9237-0621882953fa/"},
+  {id:21,day:"June 24",time:"12:30 – 12:50 PM",title:"From concept to confidence with Dscout AI",speaker:"Lauren Madura, Michael Winnick",room:"Maker Stage",tags:["ai","research"],href:"https://config.figma.com/san-francisco/session/a9ed6f89-a852-48bf-9f6c-245dab895b87/"},
+  {id:22,day:"June 24",time:"12:50 – 1:10 PM",title:"Skill issue: how we built an OS for PMs at Figma",speaker:"Jinen Kamdar, Lawrence Luk",room:"Level 2 Stage",tags:["ai","product","workflows"],href:"https://config.figma.com/san-francisco/session/5d27f158-dd26-4f34-b7e0-991224db8b7a/"},
+  {id:23,day:"June 24",time:"12:55 – 1:15 PM",title:"Designing the product that can do anything",speaker:"Brian Ringley",room:"Mezzanine Stage",tags:["hardware","research","prototyping"],href:"https://config.figma.com/san-francisco/session/ac133b2f-2b12-42b3-8cbc-d9c27e0c1195/"},
+  {id:24,day:"June 24",time:"1:00 – 1:45 PM",title:"Figma learning lab: bringing designs to life",speaker:"Miggi",room:"Learning Labs",tags:["product","workflows"],href:"https://config.figma.com/san-francisco/session/a9724310-a83e-4b29-90b4-cce61cfa3ea6/"},
+  {id:25,day:"June 24",time:"1:10 – 1:40 PM",title:"Figma deep dive",speaker:"Tammy Taabassum, Rodrigo Davies",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/ad4cd109-a176-429f-8a92-da12d1bd2d42/"},
+  {id:26,day:"June 24",time:"1:15 – 1:35 PM",title:"Prompts to fashion: AI-powered 3D-printed garments",speaker:"Danit Peleg",room:"Mezzanine Stage",tags:["ai","workflows","scale"],href:"https://config.figma.com/san-francisco/session/349f94c6-628e-40ff-9f90-119750e60bfa/"},
+  {id:27,day:"June 24",time:"1:50 – 2:10 PM",title:"Hacking AI for creative operations at scale",speaker:"Rory Flynn",room:"Maker Stage",tags:["ai","workflows","scale"],href:"https://config.figma.com/san-francisco/session/e49d78e2-a2ff-4b10-98bc-47bd6cec2d48/"},
+  {id:28,day:"June 24",time:"2:00 – 2:30 PM",title:"Figma deep dive",speaker:"Georgia Rust, Avery Frankenberg, Jason Calleiro",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/274b4290-0b17-4464-9959-d6292b57ea71/"},
+  {id:29,day:"June 24",time:"2:00 – 2:45 PM",title:"Figma learning lab: unlocking speed and visual expression",speaker:"Hugo Raymond, Mallory Dean",room:"Learning Labs",tags:["visual design","workflows"],href:"https://config.figma.com/san-francisco/session/6122f91d-d899-4a5a-b542-549b1ffd31ba/"},
+  {id:30,day:"June 24",time:"2:10 – 2:30 PM",title:"The most important component: community",speaker:"Alicia Kranjc",room:"Community Stage",tags:["ai","product","storytelling"],href:"https://config.figma.com/san-francisco/session/b8b2cb7e-706f-4d96-aa85-24c40ab6c9d9/"},
+  {id:31,day:"June 24",time:"2:15 – 2:35 PM",title:"From handoffs to upstream",speaker:"Frederick Andersen",room:"Level 2 Stage",tags:["design systems","dev & code","ux"],href:"https://config.figma.com/san-francisco/session/9d0af264-b7d0-4442-be81-26aef7ea89ca/"},
+  {id:32,day:"June 24",time:"2:30 – 2:50 PM",title:"How structured thinking gives your AI superpowers",speaker:"Carola Pescio Canale",room:"Maker Stage",tags:["ai","workflows"],href:"https://config.figma.com/san-francisco/session/ca0448a6-6274-455e-b32e-7ed465ed8e7a/"},
+  {id:33,day:"June 24",time:"2:35 – 2:55 PM",title:"The metacognitive design loop",speaker:"Jenny Au, Mike Green",room:"Level 2 Stage",tags:["design systems","dev & code","ai"],href:"https://config.figma.com/san-francisco/session/6c44950a-077d-47bf-bad1-8cc71f995957/"},
+  {id:34,day:"June 24",time:"2:40 – 3:00 PM",title:"Human methods, new material: designing with AI for the classroom",speaker:"Mubarak Marafa, Wendy Liao",room:"Community Stage",tags:["ai","product","ux"],href:"https://config.figma.com/san-francisco/session/571df27c-3044-4342-96d2-ae016ce9c3b4/"},
+  {id:35,day:"June 24",time:"2:45 – 3:05 PM",title:"The edge case is everyone",speaker:"Willie King, Lex Liley",room:"Mezzanine Stage",tags:["ux","accessibility"],href:"https://config.figma.com/san-francisco/session/248c6563-329e-4eee-9271-de8fa416a85e/"},
+  {id:36,day:"June 24",time:"2:45 – 3:15 PM",title:"Figma deep dive",speaker:"Yassir Solomah, Piers Cowburn, Rogie King",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/7da56d0d-c9a4-48e5-b434-b237fbd722be/"},
+  {id:37,day:"June 24",time:"2:55 – 3:15 PM",title:"Your best practices are trapped in your head—and your AI has no idea",speaker:"Harald Kirschner",room:"Level 2 Stage",tags:["ai","workflows"],href:"https://config.figma.com/san-francisco/session/dbf85ddc-ab1f-41cf-8b33-e488f14b55a7/"},
+  {id:38,day:"June 24",time:"3:05 – 3:25 PM",title:"ESPN's migration playbook: the move to Figma with One North",speaker:"Elliott Muñoz, Matt Rogers",room:"Mezzanine Stage",tags:["design systems","brand","scale"],href:"https://config.figma.com/san-francisco/session/5ec10ea1-ecd4-4ccc-ab98-bc3ccd03137f/"},
+  {id:39,day:"June 24",time:"3:10 – 3:30 PM",title:"Build like it's 2030. Listen like you mean it.",speaker:"Ned Dwyer",room:"Maker Stage",tags:["ai","research"],href:"https://config.figma.com/san-francisco/session/24762e47-798d-47d7-83fd-7ae7c2d0d412/"},
+  {id:40,day:"June 24",time:"3:10 – 3:30 PM",title:"Prototypes, failures, and unexpected breakthroughs",speaker:"Noah Finer",room:"Community Stage",tags:["prototyping","dev & code"],href:"https://config.figma.com/san-francisco/session/b9992211-46a6-4f20-b7b1-358a8d23e352/"},
+  {id:41,day:"June 24",time:"3:25 – 3:45 PM",title:"Reimagining NASA.gov to tell Earth's most important stories",speaker:"Ben Shown, Megan Greco",room:"Mezzanine Stage",tags:["workflows","ux"],href:"https://config.figma.com/san-francisco/session/1a2f5f6c-dc7f-431b-acc7-5fd16befe8b4/"},
+  {id:42,day:"June 24",time:"4:00 – 5:00 PM",title:"Closing keynote",speaker:"Patrick Flaherty, Tommy Geocos, Catt Small, Matt D. Smith, Rasmus Andersson",room:"Main Stage",tags:["keynote","motion","dev & code","workflows","ai"],href:"https://config.figma.com/san-francisco/session/e8ea736f-5159-46d9-bed5-49855d992a91/"},
+  // June 25
+  {id:43,day:"June 25",time:"9:00 – 10:00 AM",title:"Opening keynotes",speaker:"Grant Sanderson, Switch Angel + LO.FI.SCI.FI",room:"Main Stage",tags:["keynote","visual design","dev & code","storytelling","workflows"],href:"https://config.figma.com/san-francisco/session/6c5a7b92-88f7-42d7-9ddc-b67cb35ec4ab/"},
+  {id:44,day:"June 25",time:"10:15 – 11:00 AM",title:"Figma learning lab: upskill on skills and agentic workflows",speaker:"Laura Fehre, Manish Kumar",room:"Learning Labs",tags:["dev & code","ai","workflows"],href:"https://config.figma.com/san-francisco/session/1b7a9cce-f147-4d99-8755-717fc70b8575/"},
+  {id:45,day:"June 25",time:"10:15 – 11:15 AM",title:"Figma deep dive",speaker:"Elle Shwer, Iris Lin, Nikolas Klein, Ben Chen",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/2be8862e-bfbd-4276-851d-d10facbe1e1d/"},
+  {id:46,day:"June 25",time:"10:15 – 10:35 AM",title:"Designing in the age of the 10x engineer",speaker:"Andy Zhang",room:"Maker Stage",tags:["ai","ux","product"],href:"https://config.figma.com/san-francisco/session/49406317-eda9-427a-84f6-c88b24857ed8/"},
+  {id:47,day:"June 25",time:"10:20 – 10:40 AM",title:"10 years of daily sketching",speaker:"Zach Lieberman",room:"Mezzanine Stage",tags:["storytelling","visual design","workflows"],href:"https://config.figma.com/san-francisco/session/702164d5-9654-468e-9e8a-eeb3ef609fe7/"},
+  {id:48,day:"June 25",time:"10:30 – 10:50 AM",title:"The invisible mechanisms in your interfaces",speaker:"Johannes Mutter",room:"Level 2 Stage",tags:["ux","research"],href:"https://config.figma.com/san-francisco/session/cb25f8b3-31db-4849-a799-d02a2f052f5c/"},
+  {id:49,day:"June 25",time:"10:40 – 11:00 AM",title:"The world of street art and care-filled design",speaker:"Ella Rochelle-Lawton",room:"Mezzanine Stage",tags:["illustration","visual design"],href:"https://config.figma.com/san-francisco/session/d4956efb-26bd-4c93-97c6-9ef7fdd72305/"},
+  {id:50,day:"June 25",time:"10:50 – 11:10 AM",title:"Dense by design",speaker:"Matthew Ström-Awn",room:"Level 2 Stage",tags:["visual design","ux"],href:"https://config.figma.com/san-francisco/session/69636242-b6b2-4b27-a831-bfd73eed654f/"},
+  {id:51,day:"June 25",time:"10:50 – 11:10 AM",title:"Building real-time user insights into your design workflow",speaker:"Prayag Narula",room:"Maker Stage",tags:["research","workflows","ux"],href:"https://config.figma.com/san-francisco/session/ddcc3459-4bc6-43d4-8aba-103c1870e703/"},
+  {id:52,day:"June 25",time:"11:00 – 11:20 AM",title:"Managing multiple creative passions in a world that tells you to specialize",speaker:"Lauren Hom",room:"Mezzanine Stage",tags:["brand","storytelling"],href:"https://config.figma.com/san-francisco/session/320859cb-ec55-495e-aeef-2cb7beea60cd/"},
+  {id:53,day:"June 25",time:"11:10 – 11:30 AM",title:"Usernames on Instagram: how a craft fix became an identity crisis",speaker:"Rose McManus",room:"Level 2 Stage",tags:["content design","ux","storytelling"],href:"https://config.figma.com/san-francisco/session/5d1f7e2d-c6f5-4001-b2c7-23f70a9f92d9/"},
+  {id:54,day:"June 25",time:"11:25 – 11:45 AM",title:"AI will upend your process—for the better",speaker:"Justin Meyer",room:"Maker Stage",tags:["ai","ux"],href:"https://config.figma.com/san-francisco/session/b751e092-79d1-4082-9c8f-aeeba6ec3b0e/"},
+  {id:55,day:"June 25",time:"11:30 – 11:50 AM",title:"The future is low-tech: lessons from the early 2000s",speaker:"Jésabel DC",room:"Level 2 Stage",tags:["ux"],href:"https://config.figma.com/san-francisco/session/79c76468-0c48-41ae-8775-7a46d4409bb3/"},
+  {id:56,day:"June 25",time:"11:30 AM – 12:15 PM",title:"Figma learning lab: express yourself with Figma Draw",speaker:"Laura Butvinik, Rachel Platt",room:"Learning Labs",tags:["illustration","visual design"],href:"https://config.figma.com/san-francisco/session/9db83287-aa02-4fb5-9a5f-b18916098e8f/"},
+  {id:57,day:"June 25",time:"12:15 – 1:00 PM",title:"Figma deep dive: inside the Weave workflow",speaker:"Gal Sharir, Ron Baranov",room:"Main Stage",tags:["figma deep dive","ai","workflows","visual design"],href:"https://config.figma.com/san-francisco/session/82e928ab-95f0-46a3-b6f1-157a5f6fff00/"},
+  {id:58,day:"June 25",time:"12:45 – 1:05 PM",title:"The canvas is not dead",speaker:"Catt Small",room:"Mezzanine Stage",tags:["ai","ux","workflows"],href:"https://config.figma.com/san-francisco/session/3a3146f3-98c6-40e7-a09b-ff3c606bf5c1/"},
+  {id:59,day:"June 25",time:"12:45 – 1:05 PM",title:"Quirk up your workplace",speaker:"Darby Thomas",room:"Maker Stage",tags:["storytelling"],href:"https://config.figma.com/san-francisco/session/8d8c083f-75c5-4595-ba5d-c8c2809ec350/"},
+  {id:60,day:"June 25",time:"12:45 – 1:30 PM",title:"Figma learning lab: workflow tips—from slow to flow",speaker:"Chad Bergman, Michel Ferreira",room:"Learning Labs",tags:["workflows","prototyping"],href:"https://config.figma.com/san-francisco/session/cdacc08f-a60e-4ece-bb3b-6b186a3a9dfc/"},
+  {id:61,day:"June 25",time:"12:50 – 1:10 PM",title:"Everyone's still eating: building Notion's design system",speaker:"Tamara Chu, Shauna Sapper",room:"Level 2 Stage",tags:["design systems","dev & code","scale","workflows"],href:"https://config.figma.com/san-francisco/session/9bbf68e9-0644-48df-9b6c-f4ad1827a146/"},
+  {id:62,day:"June 25",time:"1:05 – 1:25 PM",title:"The hidden craft of interface design in modern film",speaker:"Jayse Hansen",room:"Mezzanine Stage",tags:["visual design","storytelling"],href:"https://config.figma.com/san-francisco/session/936e7fba-1c7a-4e20-9d37-42b95820ff2b/"},
+  {id:63,day:"June 25",time:"1:10 – 1:30 PM",title:"In praise of dark mode",speaker:"Mehmet Aydın Baytaş",room:"Community Stage",tags:["design systems","visual design","ux"],href:"https://config.figma.com/san-francisco/session/404d5692-4463-4304-b74c-723a71e491a1/"},
+  {id:64,day:"June 25",time:"1:10 – 1:30 PM",title:"Preparing Rocket for the AI era",speaker:"Emily Strobl, Will Hobick",room:"Level 2 Stage",tags:["design systems","ai","dev & code","scale"],href:"https://config.figma.com/san-francisco/session/cc9f82eb-31cd-4bd3-93db-bb060c95a6ac/"},
+  {id:65,day:"June 25",time:"1:30 – 1:50 PM",title:"Designed to be read: making a system AI can actually use",speaker:"Harvey Whiting",room:"Level 2 Stage",tags:["design systems","ai","workflows","prototyping"],href:"https://config.figma.com/san-francisco/session/c856c21b-317e-482c-8a3f-f01280aeed56/"},
+  {id:66,day:"June 25",time:"1:20 – 1:40 PM",title:"Designing with confidence in an AI-powered world",speaker:"Bobby Meixner",room:"Maker Stage",tags:["ai","research","ux"],href:"https://config.figma.com/san-francisco/session/f9a5d27e-b1c3-4674-92ee-0545d7822fc0/"},
+  {id:67,day:"June 25",time:"1:40 – 2:00 PM",title:"Designing brand intelligence: from rules to expression",speaker:"Nicole Martinez",room:"Community Stage",tags:["brand","ai","workflows"],href:"https://config.figma.com/san-francisco/session/b14b91d9-50d9-4081-a943-51f331a2b4b4/"},
+  {id:68,day:"June 25",time:"1:45 – 2:15 PM",title:"Figma deep dive",speaker:"Brett McMillin, Laura Fehre",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/3f389393-0c3a-4c27-af5d-3af9e962d6fb/"},
+  {id:69,day:"June 25",time:"2:00 – 3:00 PM",title:"Figma learning lab: build your first Weave workflow",speaker:"Moran Dankner, Ken Vreman",room:"Learning Labs",tags:["ai","workflows"],href:"https://config.figma.com/san-francisco/session/f94f6215-0d25-4b2e-8b14-7e00a74588e6/"},
+  {id:70,day:"June 25",time:"2:05 – 2:25 PM",title:"Own the loop: how designers and researchers win with AI evals",speaker:"Setor Zilevu",room:"Mezzanine Stage",tags:["ai","research","ux"],href:"https://config.figma.com/san-francisco/session/2bb4e5de-dbaf-47c5-8c12-b58e5728ab62/"},
+  {id:71,day:"June 25",time:"2:10 – 2:30 PM",title:"Gnarly by design: building systems with grit",speaker:"Beau Wingfield",room:"Community Stage",tags:["design systems","visual design","ux","scale"],href:"https://config.figma.com/san-francisco/session/c6c9fdb6-0e45-4b0e-b966-76675517b045/"},
+  {id:72,day:"June 25",time:"2:15 – 2:45 PM",title:"Figma deep dive",speaker:"Jake Albaugh",room:"Main Stage",tags:["figma deep dive"],href:"https://config.figma.com/san-francisco/session/07a28549-f6a7-4621-8dca-504608ad449b/"},
+  {id:73,day:"June 25",time:"2:15 – 2:35 PM",title:"300GB story: how to inspire action when data isn't enough",speaker:"Luke Fiorante, Sirinda Limsong",room:"Level 2 Stage",tags:["research","storytelling"],href:"https://config.figma.com/san-francisco/session/e2b0051f-0b4a-4860-bca5-71e668b04bd9/"},
+  {id:74,day:"June 25",time:"2:25 – 2:45 PM",title:"Design for the future of apps",speaker:"Craig Labenz",room:"Mezzanine Stage",tags:["ai","ux","dev & code"],href:"https://config.figma.com/san-francisco/session/d942bacb-600a-437f-817a-6d61794a930d/"},
+  {id:75,day:"June 25",time:"2:35 – 2:55 PM",title:"The marathon designer: creative endurance beyond prompts and pixels",speaker:"Socrates Charisis",room:"Level 2 Stage",tags:["ux","storytelling"],href:"https://config.figma.com/san-francisco/session/7856aab8-4ce1-430a-8066-efae860ffa60/"},
+  {id:76,day:"June 25",time:"2:40 – 3:00 PM",title:"Don't forget the feeling: a critique of software in 2026",speaker:"Luis Ouriach",room:"Community Stage",tags:["brand","ai"],href:"https://config.figma.com/san-francisco/session/4b523a98-9e0e-4b9e-8783-c405ab892602/"},
+  {id:77,day:"June 25",time:"2:45 – 3:05 PM",title:"Designing money: how to build a trustworthy brand in the age of AI",speaker:"Chris Warner",room:"Mezzanine Stage",tags:["brand","ai","visual design"],href:"https://config.figma.com/san-francisco/session/a2fa6160-4f88-4215-a6e9-f91c78ee3d51/"},
+  {id:78,day:"June 25",time:"2:55 – 3:15 PM",title:"Design systems anarchy",speaker:"Lauren LoPrete",room:"Level 2 Stage",tags:["design systems","storytelling","ai","scale"],href:"https://config.figma.com/san-francisco/session/ace52d61-6725-4338-80c9-cd8b0e8757e4/"},
+  {id:79,day:"June 25",time:"3:05 – 3:25 PM",title:"Legibility by design",speaker:"Ryan Powell",room:"Mezzanine Stage",tags:["ai","ux","product"],href:"https://config.figma.com/san-francisco/session/b2201a51-7000-4303-a371-ce00f5d9e2ed/"},
+  {id:80,day:"June 25",time:"3:30 – 4:30 PM",title:"Death of the finished state (Closing keynote)",speaker:"Brent David Freaney",room:"Main Stage",tags:["keynote","brand","visual design","storytelling"],href:"https://config.figma.com/san-francisco/session/2327c9de-d189-4b98-b49c-79bffa38b723/"},
+];
+
+const DAYS = ["June 23","June 24","June 25"];
+const COLORS = ["#7F77DD","#1D9E75","#D85A30","#378ADD","#BA7517","#D4537E","#639922","#7B5EA7"];
+const ALL_TAGS = [...new Set(S.flatMap(s=>s.tags))].filter(t=>!["logistics","social","community"].includes(t)).sort();
+
+let sb, me, bookmarks=[], users=[], tab="all", copied=false, nameErr="", search="", filterTags=new Set(), expandedUser=null;
+
+const gi = n => n.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+const uc = id => { let h=0; for(let c of id) h=(h*31+c.charCodeAt(0))&0xffff; return COLORS[h%COLORS.length]; };
+
+async function init(){
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const stored=localStorage.getItem("cfg26_uid");
+  if(stored){ const {data}=await sb.from("users").select("*").eq("id",stored).single(); if(data) me=data; }
+  await load(); render();
+  sb.channel("rt")
+    .on("postgres_changes",{event:"*",schema:"public",table:"bookmarks"},async()=>{await load();render();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"users"},async()=>{await load();render();})
+    .subscribe();
+}
+
+async function load(){
+  const [b,u]=await Promise.all([sb.from("bookmarks").select("*"),sb.from("users").select("*")]);
+  bookmarks=b.data||[]; users=u.data||[];
+}
+
+async function register(){
+  const el=document.getElementById("ni"); const name=(el?el.value:"").trim(); nameErr="";
+  if(!name){nameErr="Please enter your name.";render();return;}
+  const {data,error}=await sb.from("users").insert({name}).select().single();
+  if(error||!data){nameErr="Something went wrong—try again.";render();return;}
+  localStorage.setItem("cfg26_uid",data.id); me=data; await load(); render();
+}
+
+async function toggleSave(sid){
+  if(!me) return;
+  const has=bookmarks.find(b=>b.user_id===me.id&&b.session_id===sid);
+  if(has){ await sb.from("bookmarks").delete().eq("user_id",me.id).eq("session_id",sid); bookmarks=bookmarks.filter(b=>!(b.user_id===me.id&&b.session_id===sid)); }
+  else { await sb.from("bookmarks").insert({user_id:me.id,session_id:sid}); bookmarks=[...bookmarks,{user_id:me.id,session_id:sid}]; }
+  render();
+}
+
+const mySet=()=>me?new Set(bookmarks.filter(b=>b.user_id===me.id).map(b=>b.session_id)):new Set();
+
+function getConflicts(ids){
+  const ss=S.filter(s=>ids.has(s.id)); const cx=new Set();
+  for(let i=0;i<ss.length;i++) for(let j=i+1;j<ss.length;j++)
+    if(ss[i].day===ss[j].day&&ss[i].time===ss[j].time){cx.add(ss[i].id);cx.add(ss[j].id);}
+  return cx;
+}
+
+function attendees(sid){ const uids=bookmarks.filter(b=>b.session_id===sid).map(b=>b.user_id); return users.filter(u=>uids.includes(u.id)); }
+function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{copied=true;render();setTimeout(()=>{copied=false;render();},2000);}); }
+function logout(){ localStorage.removeItem("cfg26_uid"); me=null; tab="all"; render(); }
+
+function toggleTag(t){ filterTags.has(t)?filterTags.delete(t):filterTags.add(t); render(); }
+function clearTags(){ filterTags.clear(); render(); }
+function toggleUser(uid){ expandedUser=expandedUser===uid?null:uid; render(); }
+
+function renderAtt(sid){
+  const att=attendees(sid); if(!att.length) return "";
+  const isMe=me&&att.find(u=>u.id===me.id);
+  const others=att.filter(u=>!me||u.id!==me.id);
+  const names=[isMe?"you":null,...others.map(u=>u.name)].filter(Boolean);
+  const disp=names.length<=2?names.join(" & "):names.slice(0,2).join(", ")+` + ${names.length-2} more`;
+  return `<div class="att"><div class="avlist">${att.slice(0,5).map(u=>`<div class="av" style="background:${uc(u.id)}">${gi(u.name)}</div>`).join("")}</div><span class="anames ${isMe?"me":""}">${disp} going</span></div>`;
+}
+
+function renderCard(s,cx){
+  const saved=mySet(); const sv=saved.has(s.id); const conflict=cx.has(s.id);
+  return `<div class="card ${sv?"saved":""}">
+    <div class="ctime">${s.time}</div>
+    <div class="cbody">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px">
+        <span class="ct"><a href="${s.href}" target="_blank" rel="noopener">${s.title}</a></span>
+        ${conflict?`<span class="conflict">⚡ conflict</span>`:""}
+      </div>
+      <div class="cm">${s.speaker?s.speaker+" · ":""}${s.room}</div>
+      <div class="tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      ${renderAtt(s.id)}
+    </div>
+    <button class="sbtn ${sv?"saved":""}" onclick="toggleSave(${s.id})" aria-label="${sv?"Remove":"Save"}"><i class="ti ${sv?"ti-bookmark-filled":"ti-bookmark"}"></i></button>
+  </div>`;
+}
+
+function render(){
+  const app=document.getElementById("app");
+  if(!me){
+    app.innerHTML=`<div class="onboard"><h2>Who are you?</h2><p>Enter your name so teammates can see which sessions you're planning to attend.</p><input type="text" id="ni" placeholder="Your name" onkeydown="if(event.key==='Enter')register()" autofocus />${nameErr?`<div class="err">${nameErr}</div>`:""}<button onclick="register()">Join the agenda</button></div>`;
+    return;
+  }
+
+  const saved=mySet(); const cx=getConflicts(saved); const mine=S.filter(s=>saved.has(s.id));
+
+  let filtered=S;
+  if(search) filtered=filtered.filter(s=>s.title.toLowerCase().includes(search.toLowerCase())||s.speaker.toLowerCase().includes(search.toLowerCase()));
+  if(filterTags.size) filtered=filtered.filter(s=>s.tags.some(t=>filterTags.has(t)));
+
+  let html=`<div class="hrow">
+    <div><h1>Config 2026 — agenda planner</h1><p class="sub">June 23–25 · Moscone Center, San Francisco</p></div>
+    <button class="upill" onclick="logout()" title="Switch name">
+      <div style="width:20px;height:20px;border-radius:50%;background:${uc(me.id)};color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">${gi(me.name)}</div>
+      ${me.name}<i class="ti ti-logout" style="font-size:12px"></i>
+    </button>
+  </div>
+  <div class="tabs">
+    <button class="tab ${tab==="all"?"active":""}" onclick="setTab('all')">All sessions</button>
+    <button class="tab ${tab==="mine"?"active":""}" onclick="setTab('mine')">My agenda${saved.size?" ("+saved.size+")":""}</button>
+    <button class="tab ${tab==="team"?"active":""}" onclick="setTab('team')">Team</button>
+  </div>`;
+
+  if(tab==="all"){
+    // Search on its own line, then tag chips
+    html+=`<div class="filter-search"><input type="text" placeholder="Search sessions or speakers…" value="${search.replace(/"/g,'&quot;')}" oninput="doSearch(this.value)" /></div>
+    <div class="filter-tags">
+      ${ALL_TAGS.map(t=>`<button class="fchip ${filterTags.has(t)?"on":""}" onclick="toggleTag('${t}')">${t}</button>`).join("")}
+      ${filterTags.size?`<button class="fchip-clear" onclick="clearTags()">✕ clear filters</button>`:""}
+    </div>`;
+    for(const day of DAYS){
+      const ds=filtered.filter(s=>s.day===day); if(!ds.length) continue;
+      html+=`<div class="day-label">${day}</div>`; ds.forEach(s=>html+=renderCard(s,cx));
+    }
+    if(!filtered.length) html+=`<div class="empty" style="padding:2rem 0"><i class="ti ti-mood-empty"></i>No sessions match your filters.</div>`;
+
+  } else if(tab==="mine"){
+    if(!saved.size){
+      html+=`<div class="empty"><i class="ti ti-bookmark"></i>No sessions saved yet.<br>Browse all sessions and tap the bookmark to add them.</div>`;
+    } else {
+      html+=`<div class="stats">
+        <div class="stat"><div class="stat-n">${saved.size}</div><div class="stat-l">sessions</div></div>
+        <div class="stat"><div class="stat-n">${Math.round(cx.size/2)}</div><div class="stat-l">conflicts</div></div>
+        <div class="stat"><div class="stat-n">${users.length}</div><div class="stat-l">teammates</div></div>
+      </div>
+      <div class="sbar">
+        <i class="ti ti-share" style="font-size:15px;color:var(--text2);flex-shrink:0"></i>
+        <input type="text" value="${location.href}" readonly onclick="this.select()" />
+        <button onclick="copyLink()" style="${copied?"color:var(--teal-t);border-color:var(--teal-b)":""}">${copied?"✓ copied":"copy link"}</button>
+      </div>`;
+      for(const day of DAYS){ const ds=mine.filter(s=>s.day===day); if(!ds.length) continue; html+=`<div class="day-label">${day}</div>`; ds.forEach(s=>html+=renderCard(s,cx)); }
+    }
+
+  } else {
+    // Team tab with expandable rows
+    if(!users.length){
+      html+=`<div class="empty"><i class="ti ti-users"></i>No teammates yet — share the link!</div>`;
+    } else {
+      users.forEach(u=>{
+        const uSaved=bookmarks.filter(b=>b.user_id===u.id).map(b=>b.session_id);
+        const n=uSaved.length; const isMe=u.id===me.id; const open=expandedUser===u.id;
+        const uSessions=S.filter(s=>uSaved.includes(s.id)).sort((a,b)=>{
+          if(a.day!==b.day) return DAYS.indexOf(a.day)-DAYS.indexOf(b.day);
+          return a.time.localeCompare(b.time);
+        });
+        html+=`<div class="trow" onclick="toggleUser('${u.id}')">
+          <div class="tav" style="background:${uc(u.id)}">${gi(u.name)}</div>
+          <div style="flex:1">
+            <div class="tname">${u.name}${isMe?" (you)":""}</div>
+            <div class="tsub">${n} session${n!==1?"s":""} saved</div>
+          </div>
+          <i class="ti ti-chevron-down tchevron ${open?"open":""}"></i>
+        </div>`;
+        if(open){
+          html+=`<div class="texpand">`;
+          if(!uSessions.length){
+            html+=`<div class="texpand-empty">No sessions saved yet.</div>`;
+          } else {
+            let lastDay="";
+            uSessions.forEach(s=>{
+              if(s.day!==lastDay){ html+=`<div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;padding:8px 0 4px">${s.day}</div>`; lastDay=s.day; }
+              html+=`<div class="texpand-card">
+                <div class="texpand-time">${s.time}</div>
+                <div>
+                  <div class="texpand-title"><a href="${s.href}" target="_blank" rel="noopener">${s.title}</a></div>
+                  <div class="texpand-room">${s.room}</div>
+                </div>
+              </div>`;
+            });
+          }
+          html+=`</div>`;
+        }
+      });
+    }
+    html+=`<div class="sbar" style="margin-top:1.5rem">
+      <i class="ti ti-link" style="font-size:15px;color:var(--text2);flex-shrink:0"></i>
+      <input type="text" value="${location.href}" readonly onclick="this.select()" />
+      <button onclick="copyLink()" style="${copied?"color:var(--teal-t);border-color:var(--teal-b)":""}">${copied?"✓ copied":"invite teammates"}</button>
+    </div>`;
+  }
+
+  app.innerHTML=html;
+}
+
+window.toggleSave=toggleSave; window.register=register;
+window.setTab=t=>{tab=t;render();};
+window.copyLink=copyLink; window.logout=logout;
+window.doSearch=v=>{search=v;render();};
+window.toggleTag=toggleTag; window.clearTags=clearTags;
+window.toggleUser=toggleUser;
+
+init();
+</script>
+</body>
+</html>
